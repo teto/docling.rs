@@ -35,6 +35,7 @@
               cargoPackage,
               bins,
               extraFeatures ? [ ],
+              extraBuildInputs ? [ ],
             }:
             pkgs.rustPlatform.buildRustPackage {
               inherit pname version;
@@ -69,7 +70,8 @@
               buildInputs = [
                 pkgs.openssl
                 pkgs.oniguruma
-              ];
+              ]
+              ++ extraBuildInputs;
 
               # The test suites need `.models/` (and the docling-parse shim for
               # the PDF baselines); run them from the dev shell instead.
@@ -102,6 +104,17 @@
             pname = "docling-serve";
             cargoPackage = "docling-serve";
             bins = [ "docling-serve" ];
+          };
+          # Default features: SQLite (+ sqlite-vec) store, HTTP
+          # embedders (Ollama & co.); conversion runs through the same
+          # dynamically loaded ONNX Runtime.
+          docling-rag = mkDocling {
+            pname = "docling-rag";
+            cargoPackage = "docling-rag";
+            bins = [ "docling-rag" ];
+            # libsqlite3-sys is built without its `bundled` feature here, so
+            # it links the system libsqlite3.
+            extraBuildInputs = [ pkgs.sqlite ];
           };
           default = docling-rs;
         }
